@@ -1,3 +1,7 @@
+# Thu vien TIME bang MIPS
+# 1612180 - Nguyen Tran Hau
+# 1612628 - Nguyen Duy Thanh
+# 1612403 - Tran Hoai Nam
 
         .data
 msg_nhap_ngay:
