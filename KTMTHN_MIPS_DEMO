@@ -323,19 +323,7 @@ HaiNamNhuanGan:
 	la $a0,time
 
 	jal NamNhuanGan
-	add $a0, $zero, $v0	# get nam nhuan 1
-	addi $v0, $zero, 1 	# syscall print int
-	syscall
-	add $s3, $zero, $v1	# save nam nhuan 2
 
-	# print new line
-	add $a0, $zero, 10	# 10 is '\n'
-	addi $v0, $zero, 11	# syscall print char
-	syscall
-
-	add $a0, $zero, $s3 	# get nam nhuan 2
-	addi $v0, $zero, 1	# syscall print int
-	syscall
 	j KetThuc
 
 #------------Nh?p input t? file input.txt xu?t k?t qu? toàn b? các ch?c n?ng trên ra file output.txt------
@@ -1018,58 +1006,65 @@ FullDate:# su dung cong thuc year*365+year/4-year/100+year/400+(153*month - 457)
 #--------Dau thu tuc -------
 NamNhuanGan:
 	# keu goi luu vao stack $v0 $v1 lan luot la 4($sp) va 0 $(sp)
-	addi $sp, $sp, -32
+	addi $sp, $sp, -24
 	sw $ra, 12($sp)
 	sw $a0, 8($sp)
-	sw $t0, 20($sp) #luu i
-	sw $t1, 24($sp)
-	sw $t2, 28($sp)
-	sw $s3, 16($sp)
-	# 4$sp va 0$sp de luu 2 nam xuat
+	sw $t0, 20($sp) #luu i temp
+	sw $t1, 4($sp)
+	sw $t2, 0($sp)
+	sw $s3, 16($sp) #luu nam nhuan de xuat kq
+
 	
 	addi $t2, $0, 1
 	jal Year #lay nam 
 	addi $v0, $v0, 1 #bat dau chay i , i ban dau = year+1
-	sw $v0, 4($sp)		# luu i vao
+	move $s3, $v0		# luu i vao
 NamNhuanGanLoop: #chia het 400
-	lw $a0, 4($sp)	# lay i
+	move $a0, $s3	# lay i
 	#chia het 400
 	li $t1, 400
 	div $a0, $t1
 	mfhi $t1
-	beq $t1, $0, NamNhuanGanNhuan	# nam chia het cho 400
-NamNhuanChiaHet4:
+	beq $t1, $0, NamNhuanGanNhuan	# nam chia het cho 400 thi di den vong lap xuat nam nhuan
+NamNhuanChiaHet4: #khong chia het 400 thi neu nam chia het 4 va khong chia het 100 thi la nam nhuan
 	li $t1, 4
 	div $a0, $t1
 	mfhi $t1
-	bne  $t1, $0, NamNhuanTangI	# nam khong chia het cho 4	
+	bne  $t1, $0, NamNhuanTangI	# nam khong chia het cho 4 thi tang i
 NamNhuanChiaHet100:
 	li $t1, 100
 	div $a0, $t1
 	mfhi $t1
-	beq $t1, $0,  NamNhuanTangI	# nam chia het cho 4 va khong chia het cho 100
-	bne $t1, $0,  NamNhuanGanNhuan
+	beq $t1, $0,  NamNhuanTangI	# nam chia het cho 4 va chia het cho 100 thi tang i
+	bne $t1, $0,  NamNhuanGanNhuan #neu dung thi xuat nam nhuan
 NamNhuanTangI:
-	lw $t0, 4($sp)	# khong nhuan thi load tu sp4 vao t0 va tro lai vong lap
+	move $t0, $s3	# khong nhuan thi load tu s3 (bien i hien tai) vao t0 va tang i xong tro lai vong lap
 	addi $t0, $t0, 1	# i++
-	sw $t0, 4($sp)		# luu i vao
+	move $s3, $t0	# luu i vao
 	j NamNhuanGanLoop
-NamNhuanGanNhuan: #xuat nam nhuan
-	beq $t2, 2, NamNhuanGanExit
-	lw $s3, 4($sp)
-	sw $s3, 0($sp)
-	addi $t2, $t2, 1
+NamNhuanGanNhuan: 
+	#xuat nam nhuan
+	li $v0, 1
+	move $a0, $s3
+	syscall
+	beq $t2, 2, NamNhuanGanExit #neu day la lan xuat thu 2 thi exit
+	# in ra khoang cach (xuong dong)
+	add $a0, $zero, 10	# '\n'
+	addi $v0, $zero, 11	# syscall in char
+	syscall
+
+	addi $t2, $t2, 1 #tang thu tu lan tim
 	j NamNhuanTangI
 NamNhuanGanExit:
 	# tra stack stack
 	lw $ra, 12($sp)
-	lw $v0, 4($sp)
-	lw $v1, 0($sp)
-	lw $t0, 20($sp) #luu i
-	lw $t1, 24($sp)
-	lw $t2, 28($sp)
+	lw $a0, 8($sp)
+	lw $t0, 20($sp) #luu i temp
+	lw $t1, 4($sp)
+	lw $t2, 0($sp)
 	lw $s3, 16($sp)
-	addi $sp, $sp, 32
+
+	addi $sp, $sp, 24
 	jr $ra
 #-----------Cuoi thu tuc--------
 
