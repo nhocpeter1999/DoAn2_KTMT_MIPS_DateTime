@@ -312,7 +312,21 @@ HaiNamNhuanGan:
 	#Goi ham NamNhuanGan
 	la $a0,time
 	jal NamNhuanGan
-	j KetThuc
+	
+	add $a0, $zero, $v0	# get nam nhuan 1
+	add $s3, $zero, $v1	# save nam nhuan 2
+	addi $v0, $zero, 1 	# syscall print int
+	syscall
+
+	# print new line
+	add $a0, $zero, 10	# 10 is '\n'
+	addi $v0, $zero, 11	# syscall print char
+	syscall
+
+	add $a0, $zero, $s3 	# get nam nhuan 2
+	addi $v0, $zero, 1	# syscall print int
+	syscall
+
 #------------Nh?p input t? file input.txt xu?t k?t qu? toàn b? các ch?c n?ng trên ra file output.txt------
 NhapXuatInOut:
 	#Goi ham nhap xuat file
@@ -1045,7 +1059,7 @@ FullDate:# su dung cong thuc year*365+year/4-year/100+year/400+(153*month - 457)
 #--------Dau thu tuc -------
 NamNhuanGan:
 	# keu goi luu vao stack $v0 $v1 lan luot la 4($sp) va 0 $(sp)
-	addi $sp, $sp, -48
+	addi $sp, $sp, -56
 	sw $ra, 40($sp)
 	sw $a0, 36($sp)
 	sw $t0, 32($sp) #luu i temp
@@ -1058,6 +1072,7 @@ NamNhuanGan:
 	sw $t7, 4($sp)
 	sw $s3, 0($sp) #luu nam nhuan de xuat kq
 	sw $s1, 44($sp) #luu nam goc
+	#48 va 52 luu nam
 	#7.6.5.4 luu nam, 3 luu check
 	addi $t2, $0, 1
 	jal Year #lay nam 
@@ -1153,92 +1168,59 @@ NamNhuanMinCheck:
 	beq $s1, 1, NamNhuanMin2TL
 	beq $s1, 2, NamNhuanMin2QK
 NamNhuanThu1TL:
-	li $v0, 1
-	move $a0, $t7
-	syscall
 
-	# in ra khoang cach (xuong dong)
-	add $a0, $zero, 10	# '\n'
-	addi $v0, $zero, 11	# syscall in char
-	syscall
+	move $a0, $t7
+	sw $a0, 48($sp)
+
+	
 	j NamNhuanMinCheck
 NamNhuanThu1QK:
-	li $v0, 1
-	move $a0, $t5
-	syscall
 
-	# in ra khoang cach (xuong dong)
-	add $a0, $zero, 10	# '\n'
-	addi $v0, $zero, 11	# syscall in char
-	syscall
+	move $a0, $t5
+	sw $a0, 48($sp)
+
 	j NamNhuanMinCheck
 NamNhuanMinTLThu2TL:
-	li $v0, 1
-	move $a0, $t6
-	syscall
 
-	# in ra khoang cach (xuong dong)
-	add $a0, $zero, 10	# '\n'
-	addi $v0, $zero, 11	# syscall in char
-	syscall
+	move $a0, $t6
+	sw $a0, 52($sp)
+
+	
 	j NamNhuanGanExit
 NamNhuanMinTLThu2QK:
-	li $v0, 1
-	move $a0, $t5
-	syscall
 
-	# in ra khoang cach (xuong dong)
-	add $a0, $zero, 10	# '\n'
-	addi $v0, $zero, 11	# syscall in char
-	syscall
+	move $a0, $t5
+	sw $a0, 52($sp)
+
 	j NamNhuanGanExit
 NamNhuanMinQKThu2TL:
-	li $v0, 1
-	move $a0, $t7
-	syscall
 
-	# in ra khoang cach (xuong dong)
-	add $a0, $zero, 10	# '\n'
-	addi $v0, $zero, 11	# syscall in char
-	syscall
+	move $a0, $t7
+	sw $a0, 52($sp)
+
+	
+	
 	j NamNhuanGanExit
 NamNhuanMinQKThu2QK:
 	li $v0, 1
 	move $a0, $t4
-	syscall
-
-	# in ra khoang cach (xuong dong)
-	add $a0, $zero, 10	# '\n'
-	addi $v0, $zero, 11	# syscall in char
-	syscall
+	sw $a0, 52($sp)
 	j NamNhuanGanExit
 NamNhuan4V8:
-	li $v0, 1
+
 	li $a0, 4
-	syscall
+	sw $a0, 48($sp)
 
-	# in ra khoang cach (xuong dong)
-	add $a0, $zero, 10	# '\n'
-	addi $v0, $zero, 11	# syscall in char
-	syscall
 
-	li $v0, 1
 	li $a0, 8
-	syscall
+	sw $a0, 52($sp)
+
 	j NamNhuanGanExit
 NamNhuanCua4:
-	li $v0, 1
 	li $a0, 8
-	syscall
-
-	# in ra khoang cach (xuong dong)
-	add $a0, $zero, 10	# '\n'
-	addi $v0, $zero, 11	# syscall in char
-	syscall
-
-	li $v0, 1
+	sw $a0, 48($sp)
 	li $a0, 12
-	syscall
+	sw $a0, 52($sp)
 	j NamNhuanGanExit
 NamNhuanGanExit:
 	# tra stack 
@@ -1254,7 +1236,9 @@ NamNhuanGanExit:
 	lw $t7, 4($sp)
 	lw $s3, 0($sp) 
 	lw $s1, 44($sp)
-	addi $sp, $sp, 48
+	lw $v0, 48($sp)
+	lw $v1, 52($sp)
+	addi $sp, $sp, 56
 	jr $ra
 #-----------Cuoi thu tuc--------
 
